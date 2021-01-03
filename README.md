@@ -1,1 +1,1 @@
-Shader Learning
+Tjorben Wade, Janis Hansen
