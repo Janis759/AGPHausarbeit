@@ -67,20 +67,12 @@
                 for (int i = 0; i < 20; i++)
                 {
                     if (positions[i].w == 1)
-                    {
-                        if (found == true)
-                        {
-                            d = CombinedSmoothDistance(_SMOOTHNESS, d, GetDistanceSphere(p, positions[i].xyz, _SPHERE_RADIUS));
-                        }
-                        else
-                        {
-                            d = GetDistanceSphere(p, positions[i].xyz, _SPHERE_RADIUS);
-                        }
+                    {        
+                        d = GetDistanceSphere(p, positions[i].xyz, _SPHERE_RADIUS)*!found + CombinedSmoothDistance(_SMOOTHNESS, d, GetDistanceSphere(p, positions[i].xyz, _SPHERE_RADIUS))*found;
                         found = true;
                     }
                 }
                 d = CombinedDistance (d, GetDistanceSphere(p, -_LIGHT_POSITION, 0.1));
-
                 return d;
             }
 
