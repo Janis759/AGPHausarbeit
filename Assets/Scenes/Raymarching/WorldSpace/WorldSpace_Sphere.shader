@@ -1,6 +1,4 @@
-﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
-
-Shader "Unlit/WorldSpace_Spheres"
+﻿Shader "Unlit/WorldSpace_Spheres"
 {
     Properties
     {
@@ -8,8 +6,6 @@ Shader "Unlit/WorldSpace_Spheres"
         _MAX_DIST ("Max Dist", Int) = 100
         _SURFACE_DISTANCE ("Surface Distance", Float) = 0.001
         _SPHERE_RADIUS ("Sphere radius", Float) = 0.5
-        _CENTER1 ("Sphere 1 Center", Vector) = (0, 0, 0)
-        _CENTER2 ("Sphere 2 Center", Vector) = (0, 0, 0)
         _SMOOTHNESS ("Smoothness", Float) = 0.0
         _LIGHT_POSITION("Light position", Vector) = (0, 0, 0) 
         _SHININESS("Shininess", Range(1, 100)) = 1
@@ -27,8 +23,10 @@ Shader "Unlit/WorldSpace_Spheres"
             #pragma fragment frag
 
             #include "UnityCG.cginc"
+            #include "Assets/CgIncludes/SDF.cginc"
 
-            float3 positions[10];
+
+            float4 positions[20];
 
             struct appdata
             {
@@ -48,8 +46,6 @@ Shader "Unlit/WorldSpace_Spheres"
             fixed _MAX_DIST;
             float _SURFACE_DISTANCE;
             float _SPHERE_RADIUS;
-            float3 _CENTER1;
-            float3 _CENTER2;
             float _SMOOTHNESS;
             float3 _LIGHT_POSITION;
             float _SHININESS;
@@ -62,32 +58,28 @@ Shader "Unlit/WorldSpace_Spheres"
                 o.rayOrigin = _WorldSpaceCameraPos;
                 o.hitPosition = mul(unity_ObjectToWorld, v.vertex);
                 return o;
-            }
-
-            float GetDistanceSphere(float3 p, float3 center, float radius)
-            {
-                float d = length(p + center) - radius;
-
-                return d;
-            }
-
-            float CombinedDistance(float3 p, float d1, float d2)
-            {
-                float d = min(d1, d2);
-                return d;
-            }
-
-            float CombinedSmoothDistance(float3 p, float k, float d1, float d2) 
-            {
-                float h = clamp(0.5 + 0.5*(d1-d2)/k, 0.0, 1.0);
-                return lerp(d1, d2, h ) - k*h*(1.0-h); 
-            }
-
+            } 
+    
             float GetSceneDistance(float3 p)
             {
-                float3 toll = positions[0];
-                float d = CombinedSmoothDistance (p, _SMOOTHNESS, GetDistanceSphere(p, toll, _SPHERE_RADIUS), GetDistanceSphere(p, positions[1], _SPHERE_RADIUS));
-                d = CombinedDistance (p, d, GetDistanceSphere(p, -_LIGHT_POSITION, 0.1));
+                bool found = false;
+                float d = 10;
+                for (int i = 0; i < 20; i++)
+                {
+                    if (positions[i].w == 1)
+                    {
+                        if (found == true)
+                        {
+                            d = CombinedSmoothDistance(_SMOOTHNESS, d, GetDistanceSphere(p, positions[i].xyz, _SPHERE_RADIUS));
+                        }
+                        else
+                        {
+                            d = GetDistanceSphere(p, positions[i].xyz, _SPHERE_RADIUS);
+                        }
+                        found = true;
+                    }
+                }
+                d = CombinedDistance (d, GetDistanceSphere(p, -_LIGHT_POSITION, 0.1));
 
                 return d;
             }

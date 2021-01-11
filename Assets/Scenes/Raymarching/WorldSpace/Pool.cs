@@ -23,7 +23,7 @@ public class Pool : MonoBehaviour
 		}
 	}
 
-	public void ReuseObject(Vector3 position)
+	public void ReuseObject(Vector3 position, Vector3 forceToAdd)
 	{
 		if (pool.Count != 0)
 		{
@@ -32,7 +32,9 @@ public class Pool : MonoBehaviour
 
 			objectToReuse.SetActive(true);
 			objectToReuse.transform.position = position;
-			objectToReuse.GetComponent<Rigidbody>().velocity = Vector3.zero;
+			Rigidbody rb = objectToReuse.GetComponent<Rigidbody>();
+			rb.velocity = Vector3.zero;
+			rb.AddForce(forceToAdd);
 		}
 	}
 }
