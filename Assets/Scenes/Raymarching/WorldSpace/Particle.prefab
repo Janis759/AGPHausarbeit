@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 2510388287083467096}
   - component: {fileID: 7170222766575696524}
   - component: {fileID: 2457736392485186801}
-  - component: {fileID: 3975084451623301931}
   m_Layer: 0
   m_Name: Particle
   m_TagString: Untagged
@@ -61,16 +60,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 23d7069785d2f194bab6801b93055761, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!135 &3975084451623301931
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3224437664491710529}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.52
-  m_Center: {x: 0, y: 0, z: 0}

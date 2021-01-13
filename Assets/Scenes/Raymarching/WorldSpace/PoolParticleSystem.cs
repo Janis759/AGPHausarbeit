@@ -5,6 +5,12 @@ using UnityEngine;
 public class PoolParticleSystem : MonoBehaviour
 {
     public GameObject poolPrefab;
+    public Transform directionHelper;
+    public float launchForce;
+    public float marginPercentage;
+    [Range(0.1f, 0.5f)]
+    public float spawnRateMin, spawnRateMax;
+
     public int poolSize = 20;
 
     private Pool pool;
@@ -20,12 +26,17 @@ public class PoolParticleSystem : MonoBehaviour
 
     void Update()
     {
-        Vector3 forceToAdd = new Vector3(-Random.Range(1, 5), Random.Range(1, 5), -Random.Range(15, 30));
+
+        Vector3 forceToAdd = directionHelper.position - transform.position;
+        forceToAdd = forceToAdd.normalized * launchForce;
+        Vector3 marginBase = forceToAdd * marginPercentage / 100;
+        Vector3 margin = new Vector3(Random.Range(-marginBase.x, marginBase.x), Random.Range(-marginBase.y, marginBase.y), Random.Range(-marginBase.z, marginBase.z));
+        Debug.Log(margin);
 
         if(nextTime <= Time.time)
         {
-            pool.ReuseObject(transform.position, forceToAdd);
-            nextTime += Random.Range(.1f, .3f);
+            pool.ReuseObject(transform.position, forceToAdd + margin);
+            nextTime += Random.Range(spawnRateMin, spawnRateMin);
         }
 
     }
