@@ -73,6 +73,11 @@
                     }
                 }
                 d = CombinedDistance (d, GetDistanceSphere(p, -_LIGHT_POSITION, 0.1));
+
+                d = CombinedDistance(d, sdBox(p, float3(0, -5.1, 0), float3(5, .1, 5)));
+                d = CombinedDistance(d, sdBox(p, float3(-5.1, 0, 0), float3(.1, 5, 5)));
+                d = CombinedDistance(d, sdBox(p, float3(0, 0, -5.1), float3(5, 5, .1)));
+
                 return d;
             }
 
@@ -90,6 +95,16 @@
 
                 return distanceToOrigin;
             }
+
+            /*float3 GetNormal(float3 p) // for function f(p)
+            {
+                const float h = 0.01; // replace by an appropriate value
+                const float2 k = float2(1, -1);
+                return normalize(k.xyy * GetSceneDistance(p + k.xyy * h) +
+                    k.yyx * GetSceneDistance(p + k.yyx * h) +
+                    k.yxy * GetSceneDistance(p + k.yxy * h) +
+                    k.xxx * GetSceneDistance(p + k.xxx * h));
+            }*/
 
             float3 GetNormal (float3 surfacePoint)
             {
@@ -138,7 +153,7 @@
                 {
                     float3 p = rayOrigin + rayDirection * distanceToScene;
                     float3 color = PhongLightning(p, GetNormal(p), rayOrigin);
-                    col.rgb = color;
+                    col.rgb = color.rgb;
                 }
                 else discard;
                 return col;
