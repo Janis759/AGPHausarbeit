@@ -7,8 +7,10 @@
         _SURFACE_DISTANCE ("Surface Distance", Float) = 0.001
         _SPHERE_RADIUS ("Sphere radius", Float) = 0.5
         _SMOOTHNESS ("Smoothness", Float) = 0.0
-        _LIGHT_POSITION("Light position", Vector) = (0, 0, 0) 
+        _LIGHT_POSITION("Light position", Vector) = (0, 0, 0, 0) 
         _SHININESS("Shininess", Range(1, 100)) = 1
+        _SLIMECOLOR("SlimeColor", Color) = (0, 0, 0.5)
+        _WALLCOLOR("WallColor", Color) = (.8, .8, 0.8)
     }
     SubShader
     {
@@ -49,6 +51,9 @@
             float _SMOOTHNESS;
             float3 _LIGHT_POSITION;
             float _SHININESS;
+            float4 _SLIMECOLOR;
+            float4 _WALLCOLOR;
+            
 
             v2f vert (appdata v)
             {
@@ -60,37 +65,41 @@
                 return o;
             } 
     
-            float GetSceneDistance(float3 p)
+            float4 GetSceneDistance(float3 p)
             {
                 bool found = false;
-                float d = 10;
+                float4 slime = float4(_SLIMECOLOR.rgb, 10);
                 for (int i = 0; i < 20; i++)
                 {
                     if (positions[i].w == 1)
                     {        
-                        d = GetDistanceSphere(p, positions[i].xyz, _SPHERE_RADIUS)*!found + CombinedSmoothDistance(_SMOOTHNESS, d, GetDistanceSphere(p, positions[i].xyz, _SPHERE_RADIUS))*found;
+                        slime.w = GetDistanceSphere(p, positions[i].xyz, _SPHERE_RADIUS)*!found + CombinedSmoothDistance(_SMOOTHNESS, slime.w, GetDistanceSphere(p, positions[i].xyz, _SPHERE_RADIUS))*found;
                         found = true;
                     }
                 }
-                d = CombinedDistance (d, GetDistanceSphere(p, -_LIGHT_POSITION, 0.1));
 
-                d = CombinedDistance(d, sdBox(p, float3(0, -5.1, 0), float3(5, .1, 5)));
-                d = CombinedDistance(d, sdBox(p, float3(-5.1, 0, 0), float3(.1, 5, 5)));
-                d = CombinedDistance(d, sdBox(p, float3(0, 0, -5.1), float3(5, 5, .1)));
+                float4 walls = float4(_WALLCOLOR.rgb, CombinedDistance(sdBox(p, float3(0, 0, -5.1), float3(5, 5, .1)), CombinedDistance(sdBox(p, float3(0, -5.1, 0), float3(5, .1, 5)), sdBox(p, float3(-5.1, 0, 0), float3(.1, 5, 5)))));
+
+                float4 d = slime.w < walls.w ? slime : walls;
 
                 return d;
             }
 
-            float Raymarch(float3 rayOrigin, float3 rayDirection)
+            float Raymarch(float3 rayOrigin, float3 rayDirection, inout float3 color)
             {
                 float distanceToOrigin = 0;
                 float distanceFormSurface;
                 for(int i = 0; i < _MAX_STEPS; i++)
                 {
+                    if(distanceToOrigin > _MAX_DIST) break;
                     float3 raymarchingPosition = rayOrigin + distanceToOrigin * rayDirection;
-                    distanceFormSurface = GetSceneDistance(raymarchingPosition);
+                    float4 coloredSceneDistance = GetSceneDistance(raymarchingPosition);
+                    distanceFormSurface = coloredSceneDistance.w;
                     distanceToOrigin += distanceFormSurface;
-                    if(distanceFormSurface < _SURFACE_DISTANCE || distanceToOrigin > _MAX_DIST) break;
+                    if (distanceFormSurface < _SURFACE_DISTANCE)
+                    {
+                        color = coloredSceneDistance.rgb;
+                    }
                 }
 
                 return distanceToOrigin;
@@ -109,23 +118,23 @@
             float3 GetNormal (float3 surfacePoint)
             {
                 float2 offset = float2(0.01, 0);
-                float3 normal = GetSceneDistance(surfacePoint) - float3(
-                    GetSceneDistance(surfacePoint - offset.xyy),
-                    GetSceneDistance(surfacePoint - offset.yxy),
-                    GetSceneDistance(surfacePoint - offset.yyx));
+                float3 normal = GetSceneDistance(surfacePoint).w - float3(
+                    GetSceneDistance(surfacePoint - offset.xyy).w,
+                    GetSceneDistance(surfacePoint - offset.yxy).w,
+                    GetSceneDistance(surfacePoint - offset.yyx).w);
                 return normalize(normal);
             }
 
-            float3 PhongLightning(float3 position, float3 normal, float3 camPos)
+            float3 PhongLightning(float3 position, float3 normal, float3 camPos, float3 color, float3 ro, float3 rd)
             {
                 float3 light = normalize(_LIGHT_POSITION - position);
                 float3 reflected = reflect(light, normal);
                 float3 view = normalize(position - camPos);
 
-                float3 ambientColor = float3(.1, .1, .1) * float3(0, 0, .1);
+                float3 ambientColor = float3(.1, .1, .1) * color;
 
                 float dotNL = max(0, dot(light, normal));
-                float3 diffuseColor = float3(.7, .7, .7) * float3(0, 0, .75) * dotNL;
+                float3 diffuseColor = float3(.7, .7, .7) * color * dotNL;
 
                 float3 specularColor = float3(0, 0, 0);
                 float dotRV = 0;
@@ -145,14 +154,14 @@
                 float2 uv = i.uv-.5;
                 float3 rayOrigin = i.rayOrigin;
                 float3 rayDirection = normalize(i.hitPosition - rayOrigin);
-
-                float distanceToScene = Raymarch(rayOrigin, rayDirection);
+                float3 objColor = float3(0,0,0);
+                float distanceToScene = Raymarch(rayOrigin, rayDirection, objColor);
                 fixed4 col = 0;
 
                 if(distanceToScene < _MAX_DIST)
                 {
                     float3 p = rayOrigin + rayDirection * distanceToScene;
-                    float3 color = PhongLightning(p, GetNormal(p), rayOrigin);
+                    float3 color = PhongLightning(p, GetNormal(p), rayOrigin, objColor, rayOrigin, rayDirection);
                     col.rgb = color.rgb;
                 }
                 else discard;

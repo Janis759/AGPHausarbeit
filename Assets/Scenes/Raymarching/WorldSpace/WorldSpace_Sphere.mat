@@ -21,7 +21,7 @@ Material:
     m_TexEnvs: []
     m_Floats:
     - _MAX_DIST: 100
-    - _MAX_STEPS: 200
+    - _MAX_STEPS: 100
     - _MORPH_STATE: 0
     - _SHININESS: 100
     - _SMOOTHNESS: 1.5
@@ -33,7 +33,10 @@ Material:
     - _AMBIENT: {r: 0.09999997, g: 0.09999997, b: 0.09999997, a: 1}
     - _CENTER1: {r: 0, g: 0, b: -2.07, a: 1}
     - _CENTER2: {r: 0, g: 0, b: 0, a: 1}
+    - _COLOR: {r: 0, g: 0, b: 0.5, a: 1}
     - _DIFFUSE: {r: 1, g: 1, b: 1, a: 1}
-    - _LIGHT_POSITION: {r: 2.83, g: 3.66, b: 2.02, a: 1}
+    - _LIGHT_POSITION: {r: 3.03, g: 0, b: 0, a: 1}
+    - _SLIMECOLOR: {r: 0.2880292, g: 1, b: 0, a: 1}
     - _SPECULAR: {r: 1, g: 1, b: 1, a: 1}
+    - _WALLCOLOR: {r: 0.6226415, g: 0.6226415, b: 0.6226415, a: 1}
   m_BuildTextureStacks: []
