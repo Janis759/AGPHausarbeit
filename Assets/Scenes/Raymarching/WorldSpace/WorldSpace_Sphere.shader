@@ -60,7 +60,7 @@
                 return o;
             } 
     
-            float GetSceneDistance(float3 p)
+            float4 GetSceneDistance(float3 p)
             {
                 bool found = false;
                 float d = 10;
