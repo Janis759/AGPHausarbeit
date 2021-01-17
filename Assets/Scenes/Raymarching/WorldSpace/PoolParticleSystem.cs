@@ -54,4 +54,11 @@ public class PoolParticleSystem : MonoBehaviour
 
         return output;
     }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawSphere(transform.position, 0.3f);
+        Gizmos.DrawLine(transform.position, directionHelper.position);
+    }
 }

@@ -5,12 +5,12 @@
         _MAX_STEPS ("Max Steps", Int) = 100
         _MAX_DIST ("Max Dist", Int) = 100
         _SURFACE_DISTANCE ("Surface Distance", Float) = 0.001
-        _SPHERE_RADIUS ("Sphere radius", Float) = 0.5
-        _SMOOTHNESS ("Smoothness", Float) = 0.0
-        _LIGHT_POSITION("Light position", Vector) = (0, 0, 0, 0) 
+        //sphereRadius ("Sphere radius", Float) = 0.5
+        //smoothness ("Smoothness", Float) = 0.0
+        //lightPosition("Light position", Vector) = (0, 0, 0, 0) 
         _SHININESS("Shininess", Range(1, 100)) = 1
-        _SLIMECOLOR("SlimeColor", Color) = (0, 0, 0.5)
-        _WALLCOLOR("WallColor", Color) = (.8, .8, 0.8)
+        //slimecolor("SlimeColor", Color) = (0, 0, 0.5)
+        //wallcolor("WallColor", Color) = (.8, .8, 0.8)
     }
     SubShader
     {
@@ -28,7 +28,6 @@
             #include "Assets/CgIncludes/SDF.cginc"
 
 
-            float4 positions[20];
 
             struct appdata
             {
@@ -47,12 +46,14 @@
             fixed _MAX_STEPS;
             fixed _MAX_DIST;
             float _SURFACE_DISTANCE;
-            float _SPHERE_RADIUS;
-            float _SMOOTHNESS;
-            float3 _LIGHT_POSITION;
+            float sphereRadius;
+            float smoothness;
+            float3 lightPosition;
             float _SHININESS;
-            float4 _SLIMECOLOR;
-            float4 _WALLCOLOR;
+            float4 slimecolor;
+            float4 wallcolor;
+            float4 positions[20];
+
             
 
             v2f vert (appdata v)
@@ -68,17 +69,17 @@
             float4 GetSceneDistance(float3 p)
             {
                 bool found = false;
-                float4 slime = float4(_SLIMECOLOR.rgb, 10);
+                float4 slime = float4(slimecolor.rgb, 10);
                 for (int i = 0; i < 20; i++)
                 {
                     if (positions[i].w == 1)
                     {        
-                        slime.w = GetDistanceSphere(p, positions[i].xyz, _SPHERE_RADIUS)*!found + CombinedSmoothDistance(_SMOOTHNESS, slime.w, GetDistanceSphere(p, positions[i].xyz, _SPHERE_RADIUS))*found;
+                        slime.w = GetDistanceSphere(p, positions[i].xyz, sphereRadius)*!found + CombinedSmoothDistance(smoothness, slime.w, GetDistanceSphere(p, positions[i].xyz, sphereRadius))*found;
                         found = true;
                     }
                 }
 
-                float4 walls = float4(_WALLCOLOR.rgb, CombinedDistance(sdBox(p, float3(0, 0, -5.1), float3(5, 5, .1)), CombinedDistance(sdBox(p, float3(0, -5.1, 0), float3(5, .1, 5)), sdBox(p, float3(-5.1, 0, 0), float3(.1, 5, 5)))));
+                float4 walls = float4(wallcolor.rgb, CombinedDistance(sdBox(p, float3(0, 0, -5.1), float3(5, 5, .1)), CombinedDistance(sdBox(p, float3(0, -5.1, 0), float3(5, .1, 5)), sdBox(p, float3(-5.1, 0, 0), float3(.1, 5, 5)))));
 
                 float4 d = slime.w < walls.w ? slime : walls;
 
@@ -127,7 +128,7 @@
 
             float3 PhongLightning(float3 position, float3 normal, float3 camPos, float3 color, float3 ro, float3 rd)
             {
-                float3 light = normalize(_LIGHT_POSITION - position);
+                float3 light = normalize(lightPosition - position);
                 float3 reflected = reflect(light, normal);
                 float3 view = normalize(position - camPos);
 
