@@ -7,7 +7,7 @@
         _SURFACE_DISTANCE ("Surface Distance", Float) = 0.001
         //sphereRadius ("Sphere radius", Float) = 0.5
         //smoothness ("Smoothness", Float) = 0.0
-        //lightPosition("Light position", Vector) = (0, 0, 0, 0) 
+        //lightDirection("Light position", Vector) = (0, 0, 0, 0) 
         _SHININESS("Shininess", Range(1, 100)) = 1
         //slimecolor("SlimeColor", Color) = (0, 0, 0.5)
         //wallcolor("WallColor", Color) = (.8, .8, 0.8)
@@ -48,11 +48,15 @@
             float _SURFACE_DISTANCE;
             float sphereRadius;
             float smoothness;
-            float3 lightPosition;
+            float3 lightDirection;
             float _SHININESS;
             float4 slimecolor;
             float4 wallcolor;
             float4 positions[20];
+            float lightIntesity;
+            float2 shadowDistance;
+            float shadowPenumbra;
+            float shadowIntencity;
 
             
 
@@ -80,7 +84,6 @@
                 }
 
                 float4 walls = float4(wallcolor.rgb, CombinedDistance(sdBox(p, float3(0, 0, -5.1), float3(5, 5, .1)), CombinedDistance(sdBox(p, float3(0, -5.1, 0), float3(5, .1, 5)), sdBox(p, float3(-5.1, 0, 0), float3(.1, 5, 5)))));
-
                 float4 d = slime.w < walls.w ? slime : walls;
 
                 return d;
@@ -110,10 +113,10 @@
             {
                 const float h = 0.01; // replace by an appropriate value
                 const float2 k = float2(1, -1);
-                return normalize(k.xyy * GetSceneDistance(p + k.xyy * h) +
-                    k.yyx * GetSceneDistance(p + k.yyx * h) +
-                    k.yxy * GetSceneDistance(p + k.yxy * h) +
-                    k.xxx * GetSceneDistance(p + k.xxx * h));
+                return normalize(k.xyy * GetSceneDistance(p + k.xyy * h).w +
+                    k.yyx * GetSceneDistance(p + k.yyx * h).w +
+                    k.yxy * GetSceneDistance(p + k.yxy * h).w +
+                    k.xxx * GetSceneDistance(p + k.xxx * h)).w;
             }*/
 
             float3 GetNormal (float3 surfacePoint)
@@ -126,15 +129,42 @@
                 return normalize(normal);
             }
 
+            float SoftShadow(float3 ro, float3 rd, float mint, float maxt, float k)
+            {
+                float res = 1.0;
+                float ph = 1e20;
+                for (float t = mint; t < maxt; )
+                {
+                    float h = GetSceneDistance(ro + rd * t).w;
+                    if (h < 0.001)
+                        return 0.0;
+                    float y = h * h / (2.0 * ph);
+                    float d = sqrt(h * h - y * y);
+                    res = min(res, k * d / max(0.0, t - y));
+                    ph = h;
+                    t += h;
+                }
+                return res;
+            }
+
+            float3 Shading(float3 p, float3 normal)
+            {
+                float res = max(0, dot(-lightDirection, normal)) * lightIntesity;
+                float shadow = SoftShadow(p, -lightDirection, shadowDistance.x, shadowDistance.y, shadowPenumbra) * 0.5 + 0.5;
+                shadow = max(0.0, pow(shadow, shadowIntencity));
+                res *= shadow;
+
+                return res;
+            }
+
             float3 PhongLightning(float3 position, float3 normal, float3 camPos, float3 color, float3 ro, float3 rd)
             {
-                float3 light = normalize(lightPosition - position);
-                float3 reflected = reflect(light, normal);
+                float3 reflected = reflect(-lightDirection, normal);
                 float3 view = normalize(position - camPos);
 
                 float3 ambientColor = float3(.1, .1, .1) * color;
 
-                float dotNL = max(0, dot(light, normal));
+                float dotNL = Shading(position, normal);
                 float3 diffuseColor = float3(.7, .7, .7) * color * dotNL;
 
                 float3 specularColor = float3(0, 0, 0);
