@@ -16,7 +16,6 @@ public class TestPos : MonoBehaviour
     private void Start()
     {
         pps = FindObjectOfType<PoolParticleSystem>();
-        
     }
 
     void Update()

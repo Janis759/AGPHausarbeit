@@ -42,16 +42,17 @@ public class PoolParticleSystem : MonoBehaviour
     }
 
     public Vector4[] GetArray()
-    {
+    { 
         Vector4[] output = new Vector4[poolSize];
-
-        int i = 0;
-        foreach (var item in pool.pool)
+        if (pool != null)
         {
-            output[i] = new Vector4(-item.transform.position.x, -item.transform.position.y, -item.transform.position.z, item.activeSelf ? 1 : 0);
-            i++;
+            int i = 0;
+            foreach (var item in pool.pool)
+            {
+                output[i] = new Vector4(-item.transform.position.x, -item.transform.position.y, -item.transform.position.z, item.activeSelf ? 1 : 0);
+                i++;
+            }
         }
-
         return output;
     }
 
