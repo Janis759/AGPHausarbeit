@@ -5,12 +5,7 @@
         _MAX_STEPS ("Max Steps", Int) = 100
         _MAX_DIST ("Max Dist", Int) = 100
         _SURFACE_DISTANCE ("Surface Distance", Float) = 0.001
-        //sphereRadius ("Sphere radius", Float) = 0.5
-        //smoothness ("Smoothness", Float) = 0.0
-        //lightDirection("Light position", Vector) = (0, 0, 0, 0) 
         _SHININESS("Shininess", Range(1, 100)) = 1
-        //slimecolor("SlimeColor", Color) = (0, 0, 0.5)
-        //wallcolor("WallColor", Color) = (.8, .8, 0.8)
     }
     SubShader
     {
@@ -109,16 +104,6 @@
                 return distanceToOrigin;
             }
 
-            /*float3 GetNormal(float3 p) // for function f(p)
-            {
-                const float h = 0.01; // replace by an appropriate value
-                const float2 k = float2(1, -1);
-                return normalize(k.xyy * GetSceneDistance(p + k.xyy * h).w +
-                    k.yyx * GetSceneDistance(p + k.yyx * h).w +
-                    k.yxy * GetSceneDistance(p + k.yxy * h).w +
-                    k.xxx * GetSceneDistance(p + k.xxx * h)).w;
-            }*/
-
             float3 GetNormal (float3 surfacePoint)
             {
                 float2 offset = float2(0.01, 0);
@@ -176,7 +161,6 @@
                     specularColor = float3(.1, .1, .1) * gloss;
                     
                 }
-
                 return ambientColor + diffuseColor + specularColor;
             }
 

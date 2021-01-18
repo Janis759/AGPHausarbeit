@@ -21,9 +21,9 @@ Material:
     m_TexEnvs: []
     m_Floats:
     - _MAX_DIST: 100
-    - _MAX_STEPS: 100
+    - _MAX_STEPS: 200
     - _MORPH_STATE: 0
-    - _SHININESS: 28.6
+    - _SHININESS: 100
     - _SMOOTHNESS: 1.3
     - _SPHERE_RADIUS: 0.52
     - _SURFACE_DISTANCE: 0.001
