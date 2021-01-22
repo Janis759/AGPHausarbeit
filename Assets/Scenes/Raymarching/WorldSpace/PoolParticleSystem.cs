@@ -31,7 +31,6 @@ public class PoolParticleSystem : MonoBehaviour
         forceToAdd = forceToAdd.normalized * launchForce;
         Vector3 marginBase = forceToAdd * marginPercentage / 100;
         Vector3 margin = new Vector3(Random.Range(-marginBase.x, marginBase.x), Random.Range(-marginBase.y, marginBase.y), Random.Range(-marginBase.z, marginBase.z));
-        Debug.Log(margin);
 
         if(nextTime <= Time.time)
         {

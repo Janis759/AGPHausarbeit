@@ -52,6 +52,9 @@
             float2 shadowDistance;
             float shadowPenumbra;
             float shadowIntencity;
+            sampler2D wallTexture;
+
+            float2 uv;
 
             
 
@@ -78,10 +81,21 @@
                     }
                 }
 
+
                 float4 walls = float4(wallcolor.rgb, CombinedDistance(sdBox(p, float3(0, 0, -5.1), float3(5, 5, .1)), CombinedDistance(sdBox(p, float3(0, -5.1, 0), float3(5, .1, 5)), sdBox(p, float3(-5.1, 0, 0), float3(.1, 5, 5)))));
                 float4 d = slime.w < walls.w ? slime : walls;
 
                 return d;
+            }
+
+            float3 GetNormal(float3 surfacePoint)
+            {
+                float2 offset = float2(0.01, 0);
+                float3 normal = GetSceneDistance(surfacePoint).w - float3(
+                    GetSceneDistance(surfacePoint - offset.xyy).w,
+                    GetSceneDistance(surfacePoint - offset.yxy).w,
+                    GetSceneDistance(surfacePoint - offset.yyx).w);
+                return normalize(normal);
             }
 
             float Raymarch(float3 rayOrigin, float3 rayDirection, inout float3 color)
@@ -98,21 +112,13 @@
                     if (distanceFormSurface < _SURFACE_DISTANCE)
                     {
                         color = coloredSceneDistance.rgb;
+                        break;
                     }
                 }
 
                 return distanceToOrigin;
             }
 
-            float3 GetNormal (float3 surfacePoint)
-            {
-                float2 offset = float2(0.01, 0);
-                float3 normal = GetSceneDistance(surfacePoint).w - float3(
-                    GetSceneDistance(surfacePoint - offset.xyy).w,
-                    GetSceneDistance(surfacePoint - offset.yxy).w,
-                    GetSceneDistance(surfacePoint - offset.yyx).w);
-                return normalize(normal);
-            }
 
             float SoftShadow(float3 ro, float3 rd, float mint, float maxt, float k)
             {
@@ -146,6 +152,8 @@
             {
                 float3 reflected = reflect(-lightDirection, normal);
                 float3 view = normalize(position - camPos);
+                wallcolor = tex2D(wallTexture, reflected);
+
 
                 float3 ambientColor = float3(.1, .1, .1) * color;
 
@@ -166,7 +174,7 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
-                float2 uv = i.uv-.5;
+                uv = i.uv-.5;
                 float3 rayOrigin = i.rayOrigin;
                 float3 rayDirection = normalize(i.hitPosition - rayOrigin);
                 float3 objColor = float3(0,0,0);
