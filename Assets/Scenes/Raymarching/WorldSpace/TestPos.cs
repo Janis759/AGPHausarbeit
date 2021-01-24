@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class SplashEvent : UnityEvent<Vector3> { }
+public class SplashEvent : UnityEvent<Vector3, Wall> { }
 
 [ExecuteInEditMode]
 public class TestPos : MonoBehaviour
@@ -28,12 +28,15 @@ public class TestPos : MonoBehaviour
     private void Start()
     {
         pps = FindObjectOfType<PoolParticleSystem>();
-        //texture = CreateTexture();
+        texture = CreateTexture();
         Debug.Log(texture.width);
         if (splashEvent == null)
             splashEvent = new SplashEvent();
 
         splashEvent.AddListener(SplashEventHandler);
+
+        //AddSplash(texture, new Vector2(.9f, .9f), 1);
+        Debug.Log(RotateV2(new Vector2(60, 75), 90));
     }
 
     void Update()
@@ -54,6 +57,7 @@ public class TestPos : MonoBehaviour
     Texture2D CreateTexture()
     {
         Texture2D texture = new Texture2D(1080, 1080, TextureFormat.RGB24, false);
+        texture.wrapMode = TextureWrapMode.Clamp;
 
         Color[] pixels = texture.GetPixels();
 
@@ -68,40 +72,102 @@ public class TestPos : MonoBehaviour
         return texture;
     }
 
-    private void SplashEventHandler(Vector3 pos)
+    private void SplashEventHandler(Vector3 pos, Wall wall)
     {
-        Debug.Log(pos);
-        Vector2 position = new Vector2(pos.x, pos.z) / transform.localScale.x;
-        position += new Vector2(0.5f, 0.5f);
-        texture = AddSplash(texture, position);
+        Vector2 position = Vector2.zero;
+        int rot = 0;
+
+        switch (wall)
+        {
+            case Wall.Bottom:
+                position = new Vector2(pos.z, -pos.x) / 20;
+                position += new Vector2(0.75f, 0.25f);
+                break;
+            case Wall.Left:
+                position = new Vector2(-pos.y, -pos.x) / 20;
+                position += new Vector2(0.25f, 0.25f);
+                rot = -1;
+                break;
+            case Wall.Right:
+                position = new Vector2(pos.z, pos.y) / 20;
+                position += new Vector2(0.75f, 0.75f);
+                rot = 1;
+                break;
+            default:
+                break;
+        }
+        texture = AddSplash(texture, position, rot);
     }
 
-    Texture2D AddSplash(Texture2D main, Vector2 pos)
+    Texture2D AddSplash(Texture2D main, Vector2 pos, int rotate)
     {
-        int startX = (int)(pos.x * main.width);
-        int startY = (int)(pos.y * main.height);
+        int startX = (int)(pos.x * main.width) - splashTex.width / 2;
+        int startY = (int)(pos.y * main.height) - splashTex.height / 2;
+        Vector2 start = new Vector2Int(startX, startY);
 
         Texture2D rSplashTex = rotateTexture(splashTex, Random.Range(0, 360));
-
+        Debug.Log(start);
         for (int x = 0; x < splashTex.width; x++)
         {
             for (int y = 0; y < splashTex.height; y++)
             {
-                Color bgColor = main.GetPixel(startX + x, startY + y);
+
+                Color bgColor = main.GetPixel((int)start.x + x, (int)start.y + y);
                 Color sColor = rSplashTex.GetPixel(x, y);
                 if (sColor.a != 0)
                     sColor = slimeColor;
 
                 Color fColor = Color.Lerp(bgColor, sColor, sColor.a / 1.0f);
 
-                main.SetPixel(startX + x, startY + y, fColor);
+                main.SetPixel((int)start.x + x, (int)start.y + y, fColor);
+            }
+        }
+
+        if(rotate != 0)
+        {
+            start = RotateV2(start, 90 * rotate);
+            switch (rotate)
+            {
+                case 1:
+                    start += new Vector2(main.width - splashTex.width, 0);
+                    break;
+                case -1:
+                    start += new Vector2(0, main.height - splashTex.height);
+                    break;
+                default:
+                    break;
+            }
+            Debug.Log(start);
+            for (int x = 0; x < splashTex.width; x++)
+            {
+                for (int y = 0; y < splashTex.height; y++)
+                {
+                    Color bgColor = main.GetPixel((int)start.x + x, (int)start.y + y);
+                    Color sColor = rSplashTex.GetPixel(x, y);
+                    if (sColor.a != 0)
+                        sColor = slimeColor;
+
+                    Color fColor = Color.Lerp(bgColor, sColor, sColor.a / 1.0f);
+
+                    main.SetPixel((int)start.x + x, (int)start.y + y, fColor);
+                }
             }
         }
 
         main.Apply();
         return main;
     }
-#region Quelle: https://forum.unity.com/threads/rotate-a-texture-with-an-arbitrary-angle.23904/ (User: raleighr3)
+
+    //muss richtig gemachtz werden
+    private Vector2 RotateV2(Vector2 vec, float degrees)
+    {
+        float sin = Mathf.Sin(degrees * Mathf.Deg2Rad);
+        float cos = Mathf.Cos(degrees * Mathf.Deg2Rad);
+
+        return new Vector2((cos * vec.x) - (sin * vec.y), (sin * vec.x) - (cos * vec.y));
+    }
+
+    #region Quelle: https://forum.unity.com/threads/rotate-a-texture-with-an-arbitrary-angle.23904/ (User: raleighr3)
     Texture2D rotateTexture(Texture2D tex, float angle)
     {
         Texture2D rotImage = new Texture2D(tex.width, tex.height);
@@ -176,4 +242,11 @@ public class TestPos : MonoBehaviour
         return (x * sin + y * cos);
     }
     #endregion
+}
+
+public enum Wall
+{
+    Bottom,
+    Left,
+    Right
 }

@@ -12,12 +12,32 @@ public class Particle : MonoBehaviour
         raymarcher = FindObjectOfType<TestPos>();  
     }
 
-    private void OnTriggerExit(Collider other)
+    private void Update()
     {
-        if(other.gameObject.CompareTag("Wall"))
+        if(transform.position.x < -5)
         {
             gameObject.SetActive(false);
-            //raymarcher.splashEvent.Invoke(transform.position);
+            raymarcher.splashEvent.Invoke(transform.position, Wall.Right);
+        }
+        else if (transform.position.y < -5)
+        {
+            gameObject.SetActive(false);
+            raymarcher.splashEvent.Invoke(transform.position, Wall.Bottom);
+        }
+        else if (transform.position.z < -5)
+        {
+            gameObject.SetActive(false);
+            raymarcher.splashEvent.Invoke(transform.position, Wall.Left);
+
         }
     }
+
+    //private void OnTriggerExit(Collider other)
+    //{
+    //    if(other.gameObject.CompareTag("Wall"))
+    //    {
+    //        gameObject.SetActive(false);
+    //        raymarcher.splashEvent.Invoke(transform.position);
+    //    }
+    //}
 }

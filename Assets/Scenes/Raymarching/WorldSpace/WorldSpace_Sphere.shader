@@ -68,22 +68,22 @@
                 return o;
             } 
     
-            float4 GetSceneDistance(float3 p)
+            float2 GetSceneDistance(float3 p)
             {
                 bool found = false;
-                float4 slime = float4(slimecolor.rgb, 10);
+                float2 slime = float2(10, 0);
                 for (int i = 0; i < 20; i++)
                 {
                     if (positions[i].w == 1)
                     {        
-                        slime.w = GetDistanceSphere(p, positions[i].xyz, sphereRadius)*!found + CombinedSmoothDistance(smoothness, slime.w, GetDistanceSphere(p, positions[i].xyz, sphereRadius))*found;
+                        slime.x = GetDistanceSphere(p, positions[i].xyz, sphereRadius)*!found + CombinedSmoothDistance(smoothness, slime.x, GetDistanceSphere(p, positions[i].xyz, sphereRadius))*found;
                         found = true;
                     }
                 }
 
 
-                float4 walls = float4(wallcolor.rgb, CombinedDistance(sdBox(p, float3(0, 0, -5.1), float3(5, 5, .1)), CombinedDistance(sdBox(p, float3(0, -5.1, 0), float3(5, .1, 5)), sdBox(p, float3(-5.1, 0, 0), float3(.1, 5, 5)))));
-                float4 d = slime.w < walls.w ? slime : walls;
+                float2 walls = float2(CombinedDistance(sdBox(p, float3(0, 0, -5.1), float3(5, 5, .1)), CombinedDistance(sdBox(p, float3(0, -5.1, 0), float3(5, .1, 5)), sdBox(p, float3(-5.1, 0, 0), float3(.1, 5, 5)))), 1);
+                float2 d = slime.x < walls.x ? slime : walls;
 
                 return d;
             }
@@ -91,32 +91,32 @@
             float3 GetNormal(float3 surfacePoint)
             {
                 float2 offset = float2(0.01, 0);
-                float3 normal = GetSceneDistance(surfacePoint).w - float3(
-                    GetSceneDistance(surfacePoint - offset.xyy).w,
-                    GetSceneDistance(surfacePoint - offset.yxy).w,
-                    GetSceneDistance(surfacePoint - offset.yyx).w);
+                float3 normal = GetSceneDistance(surfacePoint).x - float3(
+                    GetSceneDistance(surfacePoint - offset.xyy).x,
+                    GetSceneDistance(surfacePoint - offset.yxy).x,
+                    GetSceneDistance(surfacePoint - offset.yyx).x);
                 return normalize(normal);
             }
 
-            float Raymarch(float3 rayOrigin, float3 rayDirection, inout float3 color)
+            float2 Raymarch(float3 rayOrigin, float3 rayDirection)
             {
                 float distanceToOrigin = 0;
                 float distanceFormSurface;
+                float2 sceneDistance;
                 for(int i = 0; i < _MAX_STEPS; i++)
                 {
                     if(distanceToOrigin > _MAX_DIST) break;
                     float3 raymarchingPosition = rayOrigin + distanceToOrigin * rayDirection;
-                    float4 coloredSceneDistance = GetSceneDistance(raymarchingPosition);
-                    distanceFormSurface = coloredSceneDistance.w;
+                    sceneDistance = GetSceneDistance(raymarchingPosition);
+                    distanceFormSurface = sceneDistance.x;
                     distanceToOrigin += distanceFormSurface;
                     if (distanceFormSurface < _SURFACE_DISTANCE)
                     {
-                        color = coloredSceneDistance.rgb;
                         break;
                     }
                 }
 
-                return distanceToOrigin;
+                return float2(distanceToOrigin, sceneDistance.y);
             }
 
 
@@ -126,7 +126,7 @@
                 float ph = 1e20;
                 for (float t = mint; t < maxt; )
                 {
-                    float h = GetSceneDistance(ro + rd * t).w;
+                    float h = GetSceneDistance(ro + rd * t).x;
                     if (h < 0.001)
                         return 0.0;
                     float y = h * h / (2.0 * ph);
@@ -172,18 +172,38 @@
                 return ambientColor + diffuseColor + specularColor;
             }
 
+            //Quelle: https://forum.unity.com/threads/rotation-of-texture-uvs-directly-from-a-shader.150482/ (User: Farfarer)
+            float2x2 rotationMatrix(float deg)
+            {
+                float pi = 3.1415926;
+                float rad = deg * pi / 180;
+                return float2x2( cos(rad), -sin(rad), sin(rad), cos(rad));
+            }
+
+            float4 texcube( sampler2D sam, in float3 p, in float3 n, in float k, in float3 gx, in float3 gy )
+            {
+                float3 m = pow( abs(n), float3(k, k, k) );
+                float4 x = tex2D( sam, p.zy+.75 );
+                float4 y = tex2D( sam, mul(p.xz, rotationMatrix(90))+ float2(.75, 0.25) );
+                float4 z = tex2D( sam, mul(p.yx, rotationMatrix(180))+.25 );
+                return (x*m.x + y*m.y + z*m.z) / (m.x + m.y + m.z);
+            }
+
             fixed4 frag (v2f i) : SV_Target
             {
                 uv = i.uv-.5;
+                float distanceToScene;
+                float objID;
                 float3 rayOrigin = i.rayOrigin;
                 float3 rayDirection = normalize(i.hitPosition - rayOrigin);
-                float3 objColor = float3(0,0,0);
-                float distanceToScene = Raymarch(rayOrigin, rayDirection, objColor);
+                float2 (distanceToScene, objID) = Raymarch(rayOrigin, rayDirection);
                 fixed4 col = 0;
 
                 if(distanceToScene < _MAX_DIST)
                 {
                     float3 p = rayOrigin + rayDirection * distanceToScene;
+                    uv = p.xz*float2(0.03,0.07) +.25;
+                    float3 objColor = objID ? texcube(wallTexture, p/20, GetNormal(p), 4.0, .25, .25).rgb : slimecolor;
                     float3 color = PhongLightning(p, GetNormal(p), rayOrigin, objColor, rayOrigin, rayDirection);
                     col.rgb = color.rgb;
                 }
