@@ -53,9 +53,6 @@
             float shadowPenumbra;
             float shadowIntencity;
             sampler2D wallTexture;
-
-            float2 uv;
-
             
 
             v2f vert (appdata v)
@@ -180,18 +177,17 @@
                 return float2x2( cos(rad), -sin(rad), sin(rad), cos(rad));
             }
 
-            float4 texcube( sampler2D sam, in float3 p, in float3 n, in float k, in float3 gx, in float3 gy )
+            float4 texcube( sampler2D sam, in float3 p, in float3 n, in float k)
             {
                 float3 m = pow( abs(n), float3(k, k, k) );
                 float4 x = tex2D( sam, p.zy+.75 );
-                float4 y = tex2D( sam, mul(p.xz, rotationMatrix(90))+ float2(.75, 0.25) );
-                float4 z = tex2D( sam, mul(p.yx, rotationMatrix(180))+.25 );
+                float4 y = tex2D( sam, mul(p.xz, rotationMatrix(90)) + float2(.75, 0.25) );
+                float4 z = tex2D( sam, mul(p.yx, rotationMatrix(180)) + 0.25 );
                 return (x*m.x + y*m.y + z*m.z) / (m.x + m.y + m.z);
             }
 
             fixed4 frag (v2f i) : SV_Target
             {
-                uv = i.uv-.5;
                 float distanceToScene;
                 float objID;
                 float3 rayOrigin = i.rayOrigin;
@@ -202,8 +198,8 @@
                 if(distanceToScene < _MAX_DIST)
                 {
                     float3 p = rayOrigin + rayDirection * distanceToScene;
-                    uv = p.xz*float2(0.03,0.07) +.25;
-                    float3 objColor = objID ? texcube(wallTexture, p/20, GetNormal(p), 4.0, .25, .25).rgb : slimecolor;
+                    float2 uv = p.xz*float2(0.03,0.07) +.25;
+                    float3 objColor = objID ? texcube(wallTexture, p/20, GetNormal(p), 4.0).rgb : slimecolor;
                     float3 color = PhongLightning(p, GetNormal(p), rayOrigin, objColor, rayOrigin, rayDirection);
                     col.rgb = color.rgb;
                 }

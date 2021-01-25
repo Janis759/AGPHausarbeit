@@ -31,13 +31,4 @@ public class Particle : MonoBehaviour
 
         }
     }
-
-    //private void OnTriggerExit(Collider other)
-    //{
-    //    if(other.gameObject.CompareTag("Wall"))
-    //    {
-    //        gameObject.SetActive(false);
-    //        raymarcher.splashEvent.Invoke(transform.position);
-    //    }
-    //}
 }

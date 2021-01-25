@@ -35,8 +35,8 @@ public class TestPos : MonoBehaviour
 
         splashEvent.AddListener(SplashEventHandler);
 
-        //AddSplash(texture, new Vector2(.9f, .9f), 1);
-        Debug.Log(RotateV2(new Vector2(60, 75), 90));
+        //AddSplash(texture, new Vector2(.25f, .25f), -1);
+
     }
 
     void Update()
@@ -106,7 +106,6 @@ public class TestPos : MonoBehaviour
         Vector2 start = new Vector2Int(startX, startY);
 
         Texture2D rSplashTex = rotateTexture(splashTex, Random.Range(0, 360));
-        Debug.Log(start);
         for (int x = 0; x < splashTex.width; x++)
         {
             for (int y = 0; y < splashTex.height; y++)
@@ -130,28 +129,66 @@ public class TestPos : MonoBehaviour
             {
                 case 1:
                     start += new Vector2(main.width - splashTex.width, 0);
+                    for (int x = 0; x < splashTex.width; x++)
+                    {
+                        for (int y = splashTex.height; y >= 0; y--)
+                            {
+                            //Debug.Log(start);
+                            if ((int)start.x + x >= main.width / 2)
+                                break;
+                            Color bgColor = main.GetPixel((int)start.x + x, (int)start.y + y);
+                            Color sColor = rSplashTex.GetPixel(x, y);
+                            if (sColor.a != 0)
+                                sColor = slimeColor;
+
+                            Color fColor = Color.Lerp(bgColor, sColor, sColor.a / 1.0f);
+
+                            main.SetPixel((int)start.x + x, (int)start.y + y, fColor);
+                        }
+                    }
                     break;
                 case -1:
                     start += new Vector2(0, main.height - splashTex.height);
+                    for (int y = splashTex.height; y >= 0; y--)
+                    {
+                        for (int x = splashTex.width; x >= 0; x--)
+                        {
+                            //Debug.Log(start);
+                            if ((int)start.y + y < main.height / 2)
+                                break;
+                            Color bgColor = main.GetPixel((int)start.x + x, (int)start.y + y);
+                            Color sColor = rSplashTex.GetPixel(x, y);
+                            if (sColor.a != 0)
+                                sColor = slimeColor;
+
+                            Color fColor = Color.Lerp(bgColor, sColor, sColor.a / 1.0f);
+
+                            main.SetPixel((int)start.x + x, (int)start.y + y, fColor);
+                        }
+                    }
                     break;
                 default:
                     break;
             }
-            Debug.Log(start);
-            for (int x = 0; x < splashTex.width; x++)
-            {
-                for (int y = 0; y < splashTex.height; y++)
-                {
-                    Color bgColor = main.GetPixel((int)start.x + x, (int)start.y + y);
-                    Color sColor = rSplashTex.GetPixel(x, y);
-                    if (sColor.a != 0)
-                        sColor = slimeColor;
 
-                    Color fColor = Color.Lerp(bgColor, sColor, sColor.a / 1.0f);
+            //bool isBreaking = false;
+            //for (int y = splashTex.height; y >= 0; y--)
+            //{
+            //    for (int x = splashTex.width; x >= 0; x--)
+            //    {
+            //        //Debug.Log(start);
+            //        if ((int)start.y + y < main.height / 2)
+            //            break;
+            //        Color bgColor = main.GetPixel((int)start.x + x, (int)start.y + y);
+            //        Color sColor = rSplashTex.GetPixel(x, y);
+            //        if (sColor.a != 0)
+            //            sColor = slimeColor;
 
-                    main.SetPixel((int)start.x + x, (int)start.y + y, fColor);
-                }
-            }
+            //        Color fColor = Color.Lerp(bgColor, sColor, sColor.a / 1.0f);
+
+            //        main.SetPixel((int)start.x + x, (int)start.y + y, fColor);
+            //    }
+            //}
         }
 
         main.Apply();
