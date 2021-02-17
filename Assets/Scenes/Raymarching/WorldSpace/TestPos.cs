@@ -170,32 +170,12 @@ public class TestPos : MonoBehaviour
                 default:
                     break;
             }
-
-            //bool isBreaking = false;
-            //for (int y = splashTex.height; y >= 0; y--)
-            //{
-            //    for (int x = splashTex.width; x >= 0; x--)
-            //    {
-            //        //Debug.Log(start);
-            //        if ((int)start.y + y < main.height / 2)
-            //            break;
-            //        Color bgColor = main.GetPixel((int)start.x + x, (int)start.y + y);
-            //        Color sColor = rSplashTex.GetPixel(x, y);
-            //        if (sColor.a != 0)
-            //            sColor = slimeColor;
-
-            //        Color fColor = Color.Lerp(bgColor, sColor, sColor.a / 1.0f);
-
-            //        main.SetPixel((int)start.x + x, (int)start.y + y, fColor);
-            //    }
-            //}
         }
 
         main.Apply();
         return main;
     }
 
-    //muss richtig gemachtz werden
     private Vector2 RotateV2(Vector2 vec, float degrees)
     {
         float sin = Mathf.Sin(degrees * Mathf.Deg2Rad);
