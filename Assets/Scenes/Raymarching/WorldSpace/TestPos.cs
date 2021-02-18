@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -37,6 +38,9 @@ public class TestPos : MonoBehaviour
 
         //AddSplash(texture, new Vector2(.25f, .25f), -1);
 
+    
+        Image previewTexture = GameObject.Find("PreviewTexture").GetComponent<Image>();
+        previewTexture.material.mainTexture = texture;
     }
 
     void Update()
@@ -67,6 +71,26 @@ public class TestPos : MonoBehaviour
         }
 
         texture.SetPixels(pixels);
+        texture.Apply();
+
+        for (int x = 0; x < texture.width; x++)
+        {
+            for (int y = 0; y < texture.height; y++)
+            {
+                if (x == texture.width / 2 || y == texture.height / 2 || 
+                    x == texture.width / 2 - 1 || y == texture.height / 2 - 1 
+                    ||  x == texture.width / 2 + 1 || y == texture.height / 2 + 1)
+                {
+                    Color color = Color.blue;
+                    if (x > texture.width / 2 && y <= texture.height / 2 + 1 && y >= texture.height / 2 - 1) {
+                        color = Color.red;
+                    }else if (y < texture.height / 2 - 1) {
+                        color = Color.green;
+                    }
+                    texture.SetPixel(x, y, color);
+                }
+            }
+        } 
         texture.Apply();
 
         return texture;
