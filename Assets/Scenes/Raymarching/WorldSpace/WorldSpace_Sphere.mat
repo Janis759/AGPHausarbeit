@@ -20,6 +20,9 @@ Material:
     serializedVersion: 3
     m_TexEnvs: []
     m_Floats:
+    - _IS_AMBIENT: 1
+    - _IS_DIFFUSE: 1
+    - _IS_SPECULAR: 1
     - _MAX_DIST: 100
     - _MAX_STEPS: 200
     - _MORPH_STATE: 0

@@ -6,6 +6,9 @@
         _MAX_DIST ("Max Dist", Int) = 100
         _SURFACE_DISTANCE ("Surface Distance", Float) = 0.001
         _SHININESS("Shininess", Range(1, 100)) = 1
+        _IS_AMBIENT("Ambient", Float) = 0
+        _IS_DIFFUSE("Diffuse", Float) = 0
+        _IS_SPECULAR("Specular", Float) = 0
     }
     SubShader
     {
@@ -52,6 +55,10 @@
             float2 shadowDistance;
             float shadowPenumbra;
             float shadowIntencity;
+
+            float _IS_DIFFUSE;
+            float _IS_AMBIENT;
+            float _IS_SPECULAR;
             sampler2D wallTexture;
             
 
@@ -166,7 +173,7 @@
                     specularColor = float3(.1, .1, .1) * gloss;
                     
                 }
-                return ambientColor + diffuseColor + specularColor;
+                return ambientColor * _IS_AMBIENT + diffuseColor * _IS_DIFFUSE + specularColor * _IS_SPECULAR;
             }
 
             //Quelle: https://forum.unity.com/threads/rotation-of-texture-uvs-directly-from-a-shader.150482/ (User: Farfarer)
