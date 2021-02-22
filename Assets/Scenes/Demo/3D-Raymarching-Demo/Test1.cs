@@ -6,7 +6,7 @@ public class Test1 : MonoBehaviour
 {
     private float radius = 0;
     public float maxRadius = 10;
-    public float radiusGrowth = 0.01f;
+    public float radiusGrowth = 0.002f;
     public LayerMask mask;
     private LineRenderer lr;
     public Transform rayTip;
@@ -15,9 +15,13 @@ public class Test1 : MonoBehaviour
     public Marker markerPrefab;
     private GameObject container;
 
-    // Start is called before the first frame update
+
+    GameObject test;
+
     void Start()
     {
+        test = new GameObject("tst");
+
         lr = GetComponent<LineRenderer>();
         GameObject go = new GameObject("Hit");
         go.transform.parent = this.transform;
@@ -31,7 +35,6 @@ public class Test1 : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
     void Update()
     {
         SetHitPoint();
@@ -43,6 +46,7 @@ public class Test1 : MonoBehaviour
 
     private Vector3 GetNearestPoint(Vector3 point)
     {
+        radius = 0;
         Collider[] hitColliders = Physics.OverlapSphere(point, radius, mask);
         while (hitColliders.Length == 0 && radius < maxRadius)
         {
@@ -59,6 +63,9 @@ public class Test1 : MonoBehaviour
         lastPoint = transform.position;
         Vector3 dir = (rayTip.position - transform.position).normalized;
         Vector3 np = GetNearestPoint(lastPoint);
+
+        test.transform.position = np;
+
         float dist = Vector3.Distance(lastPoint, np);
         for (int i = 0; i < 25 ; i++)
         {
